@@ -5,12 +5,22 @@ import zipfile
 import tempfile
 import io
 import sys
+import subprocess
 from PIL import Image
 import base64
 
 # Configuración para evitar warnings de RDKit
 import warnings
 warnings.filterwarnings('ignore')
+
+# Función para instalar paquetes
+def install_package(package):
+    """Instala un paquete usando pip"""
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+        return True
+    except subprocess.CalledProcessError:
+        return False
 
 # Manejo de importación de RDKit
 try:
@@ -23,14 +33,31 @@ except ImportError:
     st.info("Instala con: pip install rdkit")
     RDKIT_AVAILABLE = False
 
-# Manejo de importación de stmol para visualización 3D
+# Manejo de importación de stmol para visualización 3D con instalación automática
 try:
     import stmol
     import py3Dmol
     STMOL_AVAILABLE = True
 except ImportError:
-    STMOL_AVAILABLE = False
-    st.info("💡 Para visualización 3D, instala: pip install stmol")
+    st.info("🔄 Instalando librerías para visualización 3D...")
+    
+    # Intentar instalar stmol y py3Dmol
+    stmol_success = install_package("stmol")
+    py3dmol_success = install_package("py3Dmol")
+    
+    if stmol_success and py3dmol_success:
+        try:
+            import stmol
+            import py3Dmol
+            STMOL_AVAILABLE = True
+            st.success("✅ Librerías de visualización 3D instaladas correctamente!")
+            st.experimental_rerun()  # Reiniciar la app para cargar las nuevas librerías
+        except ImportError:
+            STMOL_AVAILABLE = False
+            st.warning("⚠️ Error al cargar las librerías después de la instalación")
+    else:
+        STMOL_AVAILABLE = False
+        st.warning("⚠️ No se pudieron instalar las librerías de visualización 3D")
 
 def detectar_quiralidad(smiles: str):
     if not RDKIT_AVAILABLE:
@@ -206,7 +233,7 @@ def mol_to_3d_block(smiles):
 def render_3d_molecule(mol_block, style='stick'):
     """Renderiza molécula 3D usando stmol"""
     if not STMOL_AVAILABLE:
-        st.warning("📦 stmol no está instalado. Instala con: pip install stmol")
+        st.error("❌ Librerías de visualización 3D no disponibles")
         return
     
     try:
@@ -301,10 +328,6 @@ def main():
         - Molécula quiral: `CC(O)C(N)C`
         - Con quiralidad: `C[C@H](O)[C@@H](N)C`
         - Aminoácido: `N[C@@H](C)C(=O)O`
-        
-        **Librerías requeridas:**
-        - RDKit: Análisis molecular
-        - stmol: Visualización 3D (opcional)
         """)
         
         # Estado de librerías
@@ -316,9 +339,9 @@ def main():
             st.error("❌ RDKit: No disponible")
             
         if STMOL_AVAILABLE:
-            st.success("✅ stmol: Disponible")
+            st.success("✅ Visualización 3D: Habilitada")
         else:
-            st.info("💡 stmol: No instalado")
+            st.warning("⚠️ Instalando visualización 3D...")
     
     st.subheader("📝 Entrada de Datos")
     smiles_input = st.text_input(
@@ -501,7 +524,7 @@ def main():
                         
                 else:
                     if not STMOL_AVAILABLE:
-                        st.info("📦 Para visualización 3D, instala stmol: `pip install stmol`")
+                        st.info("🔄 Instalando librerías de visualización 3D...")
                     if not RDKIT_AVAILABLE:
                         st.warning("⚠️ RDKit requerido para visualización 3D")
             
