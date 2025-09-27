@@ -13,3 +13,4 @@ libatk1.0-0
 libcairo-gobject2
 libgtk-3-0
 libgdk-pixbuf2.0-0
+pip install stmol py3Dmol matplotlib
