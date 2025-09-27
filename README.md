@@ -34,6 +34,13 @@ Un ejemplo histórico es el caso de la talidomida.
   - `streamlit`
   - `rdkit`
   - `pandas`
+---
+Licencia	Características	Pertinencia para este trabajo
+GNU General Public License v3.0 (GPL-3.0)	Licencia copyleft fuerte: obliga a que cualquier modificación o redistribución mantenga la misma licencia. Permite uso, estudio, modificación y distribución libres.	Pertinente porque asegura que el proyecto siga siendo software libre en futuras versiones, protegiendo el código de usos privativos. Ideal para entornos académicos y colaborativos.
+MIT License	Licencia permisiva: permite usar, modificar y distribuir sin restricciones, incluso en software propietario, siempre que se mantenga la atribución original.	Pertinente porque ofrece máxima flexibilidad, incluso para uso comercial, pero no garantiza que mejoras futuras se mantengan abiertas.
+
+
+
 ##Alex Galiano
 Universidad Científica del Sur – Ingeniería Empresarial y de Sistemas para el curso de Software Libre
 Instalación:
