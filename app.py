@@ -5,6 +5,8 @@ import zipfile
 import tempfile
 import io
 import sys
+from PIL import Image
+import base64
 
 # Configuración para evitar warnings de RDKit
 import warnings
@@ -13,12 +15,22 @@ warnings.filterwarnings('ignore')
 # Manejo de importación de RDKit
 try:
     from rdkit import Chem
-    from rdkit.Chem import AllChem
+    from rdkit.Chem import AllChem, Draw
+    from rdkit.Chem.Draw import rdMolDraw2D
     RDKIT_AVAILABLE = True
 except ImportError:
-    st.error("❌ RDKit no está instalado. Por favor instala RDKit para usar la funcionalidad de conversión a XYZ.")
+    st.error("❌ RDKit no está instalado. Por favor instala RDKit para usar la funcionalidad completa.")
     st.info("Instala con: pip install rdkit")
     RDKIT_AVAILABLE = False
+
+# Manejo de importación de stmol para visualización 3D
+try:
+    import stmol
+    import py3Dmol
+    STMOL_AVAILABLE = True
+except ImportError:
+    STMOL_AVAILABLE = False
+    st.info("💡 Para visualización 3D, instala: pip install stmol")
 
 def detectar_quiralidad(smiles: str):
     if not RDKIT_AVAILABLE:
@@ -100,6 +112,114 @@ def generar_estereoisomeros(smiles: str):
     
     return resultados, n
 
+def generar_imagen_2d(smiles, width=300, height=300):
+    """Genera imagen 2D de una molécula usando RDKit"""
+    if not RDKIT_AVAILABLE:
+        return None
+    
+    try:
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is None:
+            return None
+        
+        # Generar coordenadas 2D si no las tiene
+        AllChem.Compute2DCoords(mol)
+        
+        # Crear imagen
+        img = Draw.MolToImage(mol, size=(width, height))
+        return img
+        
+    except Exception as e:
+        st.error(f"Error generando imagen 2D: {str(e)}")
+        return None
+
+def generar_grid_2d(smiles_list, mols_per_row=4, mol_size=(200, 200)):
+    """Genera una grilla de moléculas 2D"""
+    if not RDKIT_AVAILABLE:
+        return None
+    
+    try:
+        mols = []
+        legends = []
+        
+        for i, smiles in enumerate(smiles_list):
+            mol = Chem.MolFromSmiles(smiles)
+            if mol is not None:
+                AllChem.Compute2DCoords(mol)
+                mols.append(mol)
+                legends.append(f"Isómero {i+1}")
+        
+        if not mols:
+            return None
+            
+        img = Draw.MolsToGridImage(
+            mols, 
+            molsPerRow=mols_per_row,
+            subImgSize=mol_size,
+            legends=legends
+        )
+        return img
+        
+    except Exception as e:
+        st.error(f"Error generando grilla 2D: {str(e)}")
+        return None
+
+def mol_to_3d_block(smiles):
+    """Convierte SMILES a bloque MOL 3D para visualización"""
+    if not RDKIT_AVAILABLE:
+        return None
+    
+    try:
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is None:
+            return None
+        
+        mol = Chem.AddHs(mol)
+        
+        # Generar conformación 3D
+        params = AllChem.ETKDGv3()
+        params.randomSeed = 42
+        
+        embed_result = AllChem.EmbedMolecule(mol, params)
+        if embed_result != 0:
+            params.useRandomCoords = True
+            embed_result = AllChem.EmbedMolecule(mol, params)
+            if embed_result != 0:
+                return None
+        
+        # Optimización con campo de fuerza
+        try:
+            if AllChem.MMFFHasAllMoleculeParams(mol):
+                AllChem.MMFFOptimizeMolecule(mol, maxIters=500)
+            else:
+                AllChem.UFFOptimizeMolecule(mol, maxIters=500)
+        except:
+            pass
+        
+        # Convertir a bloque MOL
+        mol_block = Chem.MolToMolBlock(mol)
+        return mol_block
+        
+    except Exception as e:
+        return None
+
+def render_3d_molecule(mol_block, style='stick'):
+    """Renderiza molécula 3D usando stmol"""
+    if not STMOL_AVAILABLE:
+        st.warning("📦 stmol no está instalado. Instala con: pip install stmol")
+        return
+    
+    try:
+        view = py3Dmol.view(width=400, height=400)
+        view.addModel(mol_block, 'mol')
+        view.setStyle({style: {}})
+        view.zoomTo()
+        
+        stmol.showmol(view, height=400, width=400)
+        
+    except Exception as e:
+        st.error(f"Error renderizando molécula 3D: {str(e)}")
+
 def smiles_to_xyz(smiles, mol_id):
     if not RDKIT_AVAILABLE:
         return None, "❌ RDKit no está disponible"
@@ -156,8 +276,8 @@ def main():
         initial_sidebar_state="expanded"
     )
     
-    st.title("🧬 Generador de Estereoisómeros")
-    st.markdown("**Genera todos los estereoisómeros posibles y convierte a formato XYZ**")
+    st.title("🧬 Generador de Estereoisómeros con Visualización")
+    st.markdown("**Genera estereoisómeros y visualízalos en 2D y 3D**")
     
     with st.sidebar:
         try:
@@ -168,19 +288,37 @@ def main():
         st.markdown("---")
         st.title("ℹ️ Información")
         st.markdown("""
-        **Instrucciones:**
-        1. Ingresa un código SMILES (con o sin quiralidad especificada)
-        2. El sistema detecta automáticamente si la molécula es quiral
-        3. Si tiene centros quirales especificados (@ o @@), genera todos los estereoisómeros
-        4. Máximo 3 centros quirales para evitar demasiados isómeros
-        5. Opcionalmente convierte a formato XYZ para visualización 3D
+        **Funcionalidades:**
+        - 🔍 Detección automática de quiralidad
+        - 🧪 Generación de todos los estereoisómeros
+        - 🎨 Visualización 2D de moléculas individuales
+        - 📊 Grillas comparativas de isómeros
+        - 🌐 Visualización 3D interactiva
+        - 💾 Exportación a XYZ
         
         **Ejemplos de SMILES:**
-        - Sin quiralidad: `CCO`
+        - Etanol: `CCO`
         - Molécula quiral: `CC(O)C(N)C`
         - Con quiralidad: `C[C@H](O)[C@@H](N)C`
         - Aminoácido: `N[C@@H](C)C(=O)O`
+        
+        **Librerías requeridas:**
+        - RDKit: Análisis molecular
+        - stmol: Visualización 3D (opcional)
         """)
+        
+        # Estado de librerías
+        st.markdown("---")
+        st.subheader("📦 Estado de Librerías")
+        if RDKIT_AVAILABLE:
+            st.success("✅ RDKit: Disponible")
+        else:
+            st.error("❌ RDKit: No disponible")
+            
+        if STMOL_AVAILABLE:
+            st.success("✅ stmol: Disponible")
+        else:
+            st.info("💡 stmol: No instalado")
     
     st.subheader("📝 Entrada de Datos")
     smiles_input = st.text_input(
@@ -189,6 +327,17 @@ def main():
     )
     
     if smiles_input:
+        # Visualización 2D de la molécula original
+        if RDKIT_AVAILABLE:
+            st.subheader("🎨 Visualización 2D - Molécula Original")
+            img_2d = generar_imagen_2d(smiles_input)
+            if img_2d:
+                col1, col2, col3 = st.columns([1, 2, 1])
+                with col2:
+                    st.image(img_2d, caption=f"Estructura 2D: {smiles_input}", use_column_width=True)
+            else:
+                st.error("❌ No se pudo generar la imagen 2D")
+        
         st.subheader("🔍 Análisis de Quiralidad")
         
         es_quiral, mensaje_quiralidad, centros_detectados = detectar_quiralidad(smiles_input)
@@ -229,16 +378,36 @@ def main():
             Ejemplo: `CC(O)C(N)C` → `C[C@H](O)[C@@H](N)C`
             """)
         
-        # Siempre inicializar
+        # Generar estereoisómeros
         isomeros, n_centros = [], 0
         if centros_especificados > 0:
             with st.spinner("🔄 Generando estereoisómeros..."):
                 isomeros, n_centros = generar_estereoisomeros(smiles_input)
         
-        # Crear tabs aunque no haya isómeros
-        tab1, tab2, tab3 = st.tabs(["📋 Lista Completa", "💾 Descargar SMI", "🧪 Convertir a XYZ"])
+        # Visualización 3D de la molécula original
+        if STMOL_AVAILABLE and RDKIT_AVAILABLE:
+            st.subheader("🌐 Visualización 3D - Molécula Original")
+            mol_block = mol_to_3d_block(smiles_input)
+            if mol_block:
+                col1, col2 = st.columns([1, 2])
+                with col1:
+                    st.markdown("**Opciones de visualización:**")
+                    style_3d = st.selectbox(
+                        "Estilo 3D:",
+                        options=['stick', 'sphere', 'line', 'cartoon'],
+                        index=0
+                    )
+                with col2:
+                    render_3d_molecule(mol_block, style_3d)
+            else:
+                st.error("❌ No se pudo generar estructura 3D")
         
+        # Crear tabs
         if isomeros:
+            tab1, tab2, tab3, tab4, tab5 = st.tabs([
+                "📋 Lista", "🎨 Visualización 2D", "🌐 Visualización 3D", "💾 Descargar SMI", "🧪 Convertir XYZ"
+            ])
+            
             with tab1:
                 col1, col2 = st.columns(2)
                 for i, isomero in enumerate(isomeros):
@@ -248,6 +417,95 @@ def main():
                         col2.code(f"{i+1}. {isomero}")
             
             with tab2:
+                if RDKIT_AVAILABLE:
+                    st.subheader("🎨 Grilla de Estereoisómeros 2D")
+                    
+                    # Opciones de visualización
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        mols_per_row = st.slider("Moléculas por fila:", 2, 6, 4)
+                    with col2:
+                        mol_size = st.slider("Tamaño de moléculas:", 150, 300, 200)
+                    
+                    if st.button("🖼️ Generar Grilla 2D", type="primary"):
+                        with st.spinner("Generando grilla..."):
+                            grid_img = generar_grid_2d(
+                                isomeros, 
+                                mols_per_row=mols_per_row, 
+                                mol_size=(mol_size, mol_size)
+                            )
+                            if grid_img:
+                                st.image(grid_img, caption="Comparación de todos los estereoisómeros")
+                                
+                                # Botón para descargar imagen
+                                buf = io.BytesIO()
+                                grid_img.save(buf, format='PNG')
+                                st.download_button(
+                                    label="📥 Descargar Grilla PNG",
+                                    data=buf.getvalue(),
+                                    file_name="estereoisomeros_2d.png",
+                                    mime="image/png"
+                                )
+                            else:
+                                st.error("❌ Error generando grilla 2D")
+                    
+                    # Visualización individual
+                    st.subheader("🔍 Visualización Individual")
+                    selected_idx = st.selectbox(
+                        "Selecciona un estereoisómero:",
+                        range(len(isomeros)),
+                        format_func=lambda x: f"Isómero {x+1}: {isomeros[x]}"
+                    )
+                    
+                    img_individual = generar_imagen_2d(isomeros[selected_idx], width=400, height=400)
+                    if img_individual:
+                        col1, col2, col3 = st.columns([1, 2, 1])
+                        with col2:
+                            st.image(
+                                img_individual, 
+                                caption=f"Isómero {selected_idx+1}: {isomeros[selected_idx]}"
+                            )
+                else:
+                    st.warning("⚠️ RDKit requerido para visualización 2D")
+            
+            with tab3:
+                if STMOL_AVAILABLE and RDKIT_AVAILABLE:
+                    st.subheader("🌐 Visualización 3D Interactiva")
+                    
+                    # Selección de isómero
+                    selected_3d_idx = st.selectbox(
+                        "Selecciona estereoisómero para 3D:",
+                        range(len(isomeros)),
+                        format_func=lambda x: f"Isómero {x+1}: {isomeros[x]}",
+                        key="3d_selector"
+                    )
+                    
+                    # Opciones de estilo
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        style_option = st.selectbox(
+                            "Estilo de visualización:",
+                            options=['stick', 'sphere', 'line', 'cartoon'],
+                            index=0,
+                            key="3d_style"
+                        )
+                    
+                    selected_smiles = isomeros[selected_3d_idx]
+                    mol_block_3d = mol_to_3d_block(selected_smiles)
+                    
+                    if mol_block_3d:
+                        st.markdown(f"**Visualizando:** Isómero {selected_3d_idx+1} - `{selected_smiles}`")
+                        render_3d_molecule(mol_block_3d, style_option)
+                    else:
+                        st.error(f"❌ No se pudo generar estructura 3D para el isómero {selected_3d_idx+1}")
+                        
+                else:
+                    if not STMOL_AVAILABLE:
+                        st.info("📦 Para visualización 3D, instala stmol: `pip install stmol`")
+                    if not RDKIT_AVAILABLE:
+                        st.warning("⚠️ RDKit requerido para visualización 3D")
+            
+            with tab4:
                 smi_content = "\n".join(isomeros)
                 st.download_button(
                     label="📥 Descargar archivo.smi",
@@ -258,7 +516,7 @@ def main():
                 with st.expander("👀 Vista previa del archivo SMI"):
                     st.text(smi_content)
             
-            with tab3:
+            with tab5:
                 if st.button("🚀 Convertir todos a XYZ", type="primary"):
                     progress_bar = st.progress(0)
                     status_text = st.empty()
@@ -307,8 +565,8 @@ def main():
     st.markdown(
         """
         <div style='text-align: center'>
-            <small>🧬 <strong>Inchiral</strong> - Universidad Científica del Sur<br>
-            Generador de Estereoisómeros | Desarrollado con Streamlit y RDKit</small>
+            <small>🧬 <strong>Inchiral Enhanced</strong> - Universidad Científica del Sur<br>
+            Generador y Visualizador de Estereoisómeros | RDKit + Streamlit + stmol</small>
         </div>
         """,
         unsafe_allow_html=True
