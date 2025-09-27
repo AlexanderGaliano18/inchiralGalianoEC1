@@ -23,7 +23,7 @@ Un ejemplo histórico es el caso de la talidomida.
 
 📂 Estructura del proyecto
 - `app.py`: Código principal de la aplicación.  
-- `imagenes1/`: Carpeta con logos y recursos gráficos.  
+- `imagenes/`: Carpeta con logos y recursos gráficos.  
 - `requirements.txt`: Paquetes necesarios para ejecutar la app.  
 
 ---
