@@ -38,11 +38,19 @@ Un ejemplo histórico es el caso de la talidomida.
 ## Tabla de Comparación de Licencias para este trabajo
 | Licencia | Caracteristicas | Congruencia para este trabajo|
 |--------------|--------------|--------------|
-| GNU General Public License v3.0(GPL-3.0) | Dato A2      | Dato A3      |
-| Dato B1      | Dato B2      | Dato B3      |
+| GNU General Public License v3.0(GPL-3.0) | Obliga a que cualquier modificación o redistribución mantenga la misma licencia. Permite uso, estudio, modificación y distribución libres     | Esta licencia asegura que el proyecto siga siendo software libre en futuras versiones, protegiendo el código de usos privativos. Ideal para nuestro enfoque académico y colaborativo. |
+| MIT License    | Permite usar, modificar y distribuir sin restricciones, incluso en software propietario, siempre que se mantenga la atribución original.     | Esta licensia ofrece máxima flexibilidad, incluso para uso comercial, pero no garantiza que las mejoras futuras se mantengan abiertas. |
 
-GNU General Public License v3.0 (GPL-3.0)	Licencia copyleft fuerte: obliga a que cualquier modificación o redistribución mantenga la misma licencia. Permite uso, estudio, modificación y distribución libres.	Pertinente porque asegura que el proyecto siga siendo software libre en futuras versiones, protegiendo el código de usos privativos. Ideal para entornos académicos y colaborativos.
-MIT License	Licencia permisiva: permite usar, modificar y distribuir sin restricciones, incluso en software propietario, siempre que se mantenga la atribución original.	Pertinente porque ofrece máxima flexibilidad, incluso para uso comercial, pero no garantiza que mejoras futuras se mantengan abiertas.
+
+##✅ Elección de licencia
+
+Se eligió la GNU General Public License v3.0 (GPL-3.0) porque:
+
+-Garantiza que el proyecto se mantenga como software libre en futuras versiones.
+
+-Protege contra la apropiación privativa del código.
+
+-Refuerza el espíritu académico y de colaboración en el que se desarrolló este trabajo.
 
 
 
