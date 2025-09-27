@@ -191,15 +191,30 @@ def crear_archivo_zip(archivos_xyz):
             zip_file.writestr(filename, content)
     return zip_buffer.getvalue()
 
+import streamlit.components.v1 as components
+
 def mostrar_molecula_3d(xyz_content, width=400, height=400):
-    if PY3DMOL_AVAILABLE:
-        view = py3Dmol.view(width=width, height=height)
-        view.addModel(xyz_content, 'xyz')
-        view.setStyle({'stick':{}})
-        view.zoomTo()
-        view.show()
-    else:
+    if not PY3DMOL_AVAILABLE:
         st.warning("⚠️ py3Dmol no disponible para 3D")
+        return
+    try:
+        # Crear el HTML del viewer
+        html = f"""
+        <div id="container_{hash(xyz_content)}" style="width:{width}px; height:{height}px; position: relative;"></div>
+        <script src="https://3dmol.csb.pitt.edu/build/3Dmol-min.js"></script>
+        <script>
+        let element = document.getElementById("container_{hash(xyz_content)}");
+        let viewer = $3Dmol.createViewer(element, {{backgroundColor: 'white'}});
+        viewer.addModel(`{xyz_content}`, 'xyz');
+        viewer.setStyle({{}}, {{stick:{{}}}});
+        viewer.zoomTo();
+        viewer.render();
+        </script>
+        """
+        components.html(html, width=width+20, height=height+20)
+    except Exception as e:
+        st.error(f"❌ Error mostrando 3D: {str(e)}")
+
 
 # ------------------ Main App ------------------ #
 def main():
