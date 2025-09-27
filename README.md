@@ -1,10 +1,10 @@
-🌀 Inchiral - Detección de Quiralidad
+## 🌀 Inchiral - Detección de Quiralidad
 
 Inchiral es una aplicación interactiva y educativa desarrollada en **Streamlit** cuyo propósito es detectar la **quiralidad** en moléculas y analizar sus posibles estructuras, generando estereoisómeros y permitiendo visualización 3D.
 
 ---
 
-🎯 Propósito
+## 🎯 Propósito
 - Comprender el concepto de quiralidad en química.  
 - Detectar si una molécula es quiral o aquiral.  
 - Visualizar moléculas en 3D.  
