@@ -161,7 +161,7 @@ def main():
     
     with st.sidebar:
         try:
-            st.image("imagenes1/Inchiral.png", width=200)
+            st.image("imagenes/Inchiral.png", width=200)
         except:
             st.markdown("**🧬 Inchiral**")
         
