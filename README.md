@@ -12,7 +12,7 @@ Inchiral es una aplicación interactiva y educativa desarrollada en **Streamlit*
 
 ---
 
-🧪 ¿Qué es la quiralidad?
+## 🧪 ¿Qué es la quiralidad?
 
 La quiralidad es una propiedad geométrica de ciertas moléculas en las que su estructura **no es superponible con su imagen especular**, como sucede con las manos humanas (izquierda y derecha).  
 
@@ -21,7 +21,7 @@ Un ejemplo histórico es el caso de la talidomida.
 
 ---
 
-📂 Estructura del proyecto
+## 📂 Estructura del proyecto
 - `app.py`: Código principal de la aplicación.  
 - `imagenes/`: Carpeta con logos y recursos gráficos.  
 - `requirements.txt`: Paquetes necesarios para ejecutar la app.  
