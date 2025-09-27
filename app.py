@@ -33,31 +33,13 @@ except ImportError:
     st.info("Instala con: pip install rdkit")
     RDKIT_AVAILABLE = False
 
-# Manejo de importación de stmol para visualización 3D con instalación automática
+# Manejo de importación de stmol para visualización 3D
 try:
     import stmol
     import py3Dmol
     STMOL_AVAILABLE = True
 except ImportError:
-    st.info("🔄 Instalando librerías para visualización 3D...")
-    
-    # Intentar instalar stmol y py3Dmol
-    stmol_success = install_package("stmol")
-    py3dmol_success = install_package("py3Dmol")
-    
-    if stmol_success and py3dmol_success:
-        try:
-            import stmol
-            import py3Dmol
-            STMOL_AVAILABLE = True
-            st.success("✅ Librerías de visualización 3D instaladas correctamente!")
-            st.experimental_rerun()  # Reiniciar la app para cargar las nuevas librerías
-        except ImportError:
-            STMOL_AVAILABLE = False
-            st.warning("⚠️ Error al cargar las librerías después de la instalación")
-    else:
-        STMOL_AVAILABLE = False
-        st.warning("⚠️ No se pudieron instalar las librerías de visualización 3D")
+    STMOL_AVAILABLE = False
 
 def detectar_quiralidad(smiles: str):
     if not RDKIT_AVAILABLE:
@@ -341,7 +323,8 @@ def main():
         if STMOL_AVAILABLE:
             st.success("✅ Visualización 3D: Habilitada")
         else:
-            st.warning("⚠️ Instalando visualización 3D...")
+            st.warning("⚠️ Visualización 3D: No disponible")
+            st.info("Para habilitar, instala: `pip install stmol py3Dmol`")
     
     st.subheader("📝 Entrada de Datos")
     smiles_input = st.text_input(
