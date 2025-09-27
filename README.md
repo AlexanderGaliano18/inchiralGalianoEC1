@@ -41,7 +41,7 @@ Un ejemplo histórico es el caso de la talidomida.
 | GNU General Public License v3.0(GPL-3.0) | Obliga a que cualquier modificación o redistribución mantenga la misma licencia. Permite uso, estudio, modificación y distribución libres     | Esta licencia asegura que el proyecto siga siendo software libre en futuras versiones, protegiendo el código de usos privativos. Ideal para nuestro enfoque académico y colaborativo. |
 | MIT License    | Permite usar, modificar y distribuir sin restricciones, incluso en software propietario, siempre que se mantenga la atribución original.     | Esta licensia ofrece máxima flexibilidad, incluso para uso comercial, pero no garantiza que las mejoras futuras se mantengan abiertas. |
 
-
+---
 ##✅ Elección de licencia
 
 Se eligió la GNU General Public License v3.0 (GPL-3.0) porque:
