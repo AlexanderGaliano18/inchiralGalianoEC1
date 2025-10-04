@@ -253,7 +253,7 @@ def main():
 
     # ---------------- Entrada ---------------- #
     st.subheader("📝 Entrada de Datos")
-    smiles_input = st.text_input("👉 Ingresa el código SMILES:" C[C@H](O)[C@@H](N)C)
+    smiles_input = st.text_input("👉 Ingresa el código SMILES:","C[C@H](O)[C@@H](N)C")
     
     if smiles_input:
         if RDKIT_AVAILABLE:
